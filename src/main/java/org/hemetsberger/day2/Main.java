@@ -1,5 +1,9 @@
 package org.hemetsberger.day2;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 public class Main {
 
     private static final String input = """
@@ -1008,29 +1012,39 @@ public class Main {
         String[] reports = input.split("\n");
         int safeCtr = 0;
         for (String report : reports) {
-            if (isSafe(report))
+            int[] input = getReportAsArray(report);
+            boolean safe = checkIfSafe(input);
+            if (safe)
+                safeCtr++;
+            else if (isSafeByRemovingOneElement(input))
                 safeCtr++;
         }
         System.out.println(safeCtr);
     }
 
-    public static boolean isSafe(String report) {
-        String[] levels = report.split(" ");
-        boolean safe = true;
-        Boolean asc = null;
-        for (int i = 0; i < levels.length; i++) {
-            int current = Integer.parseInt(levels[i]);
-            if(i + 1 < levels.length) {
-                int next = Integer.parseInt(levels[i + 1]);
-                if (asc == null)
-                    asc = (current - next) < 0;
-                if (!isDiffOK(current, next) || !isOrderOK(current, next, asc)) {
-                    safe = false;
-                    break;
-                }
-            }
+    private static boolean isSafeByRemovingOneElement(int[] input) {
+        for (int i = 0; i < input.length; i++) {
+            int[] report = getReportWithoutIndex(input, i);
+            if (checkIfSafe(report))
+                return true;
         }
-        return safe;
+        return false;
+    }
+
+    private static int[] getReportWithoutIndex(int[] input, int index) {
+        int[] result = new int[input.length - 1];
+        for (int i = 0, j = 0; i < input.length; i++) {
+            if (i == index) continue;
+            result[j++] = input[i];
+        }
+        return result;
+    }
+
+    private static int[] getReportAsArray(String report) {
+        return Arrays
+                .stream(report.split(" "))
+                .mapToInt(Integer::parseInt)
+                .toArray();
     }
 
     private static boolean isDiffOK(int a, int b) {
@@ -1039,5 +1053,14 @@ public class Main {
 
     private static boolean isOrderOK(int current, int next, boolean isAsc) {
         return isAsc == ((current - next) < 0);
+    }
+
+    private static boolean checkIfSafe(int[] input) {
+        boolean isAsc = input[0] < input[1];
+        for (int i = 0; i < input.length - 1; i++) {
+            if (!isDiffOK(input[i], input[i + 1]) || !isOrderOK(input[i], input[i + 1], isAsc))
+                return false;
+        }
+        return true;
     }
 }
